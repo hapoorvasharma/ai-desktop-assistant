@@ -81,3 +81,25 @@ class FileManager:
         destination_path = os.path.join(destination_folder, filename)
 
         return self.rename_file(source_path, destination_path)
+
+    def search_files(self, keyword: str, search_folder: str) -> list:
+        """
+        Searches for files whose name contains the given keyword,
+        looking inside search_folder and all its sub-folders.
+        Returns a list of full file paths that match.
+        """
+        keyword = keyword.lower().strip()
+        found_files = []
+
+        if not os.path.isdir(search_folder):
+            logger.warning(f"Search folder does not exist: {search_folder}")
+            return found_files
+
+        for root, dirs, files in os.walk(search_folder):
+            for file in files:
+                if keyword in file.lower():
+                    full_path = os.path.join(root, file)
+                    found_files.append(full_path)
+
+        logger.info(f"Search for '{keyword}' in '{search_folder}' found {len(found_files)} result(s)")
+        return found_files
