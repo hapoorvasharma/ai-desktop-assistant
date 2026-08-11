@@ -63,3 +63,21 @@ class FileManager:
         except Exception as e:
             logger.error(f"Failed to delete '{path}': {e}")
             return False
+
+    def move_file(self, source_path: str, destination_folder: str) -> bool:
+        """
+        Moves a file into a destination folder, keeping its original filename.
+        Returns True if successful, False otherwise.
+        """
+        if not os.path.exists(source_path):
+            logger.warning(f"File not found: {source_path}")
+            return False
+
+        if not os.path.isdir(destination_folder):
+            logger.warning(f"Destination is not a valid folder: {destination_folder}")
+            return False
+
+        filename = os.path.basename(source_path)
+        destination_path = os.path.join(destination_folder, filename)
+
+        return self.rename_file(source_path, destination_path)
