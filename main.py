@@ -16,7 +16,13 @@ def main():
             print("Goodbye!")
             break
 
-        if user_input.startswith("open "):
+        if user_input.startswith("open folder "):
+            folder_name = user_input.replace("open folder ", "", 1)
+            success = system_control.open_folder(folder_name)
+            if not success:
+                print(f"Sorry, I don't know how to open the '{folder_name}' folder yet.")
+
+        elif user_input.startswith("open "):
             app_name = user_input.replace("open ", "", 1)
             success = system_control.open_app(app_name)
             if not success:

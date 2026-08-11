@@ -1,5 +1,6 @@
 import subprocess
 import time
+import os
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -8,13 +9,19 @@ logger = get_logger(__name__)
 class SystemControl:
     """
     Handles operating-system level actions: opening, closing,
-    and restarting applications.
+    and restarting applications, and opening folders.
     """
 
     KNOWN_APPS = {
         "notepad": "notepad.exe",
         "calculator": "calc.exe",
         "paint": "mspaint.exe",
+    }
+
+    KNOWN_FOLDERS = {
+        "desktop": os.path.join(os.path.expanduser("~"), "Desktop"),
+        "downloads": os.path.join(os.path.expanduser("~"), "Downloads"),
+        "documents": os.path.join(os.path.expanduser("~"), "Documents"),
     }
 
     def open_app(self, app_name: str) -> bool:
@@ -79,4 +86,25 @@ class SystemControl:
             return True
         else:
             logger.warning(f"Restart may have partially failed for: {app_name}")
+            return False
+
+    def open_folder(self, folder_name: str) -> bool:
+        """
+        Opens a known folder by its friendly name.
+        Returns True if it opened successfully, False otherwise.
+        """
+        folder_name = folder_name.lower().strip()
+
+        if folder_name not in self.KNOWN_FOLDERS:
+            logger.warning(f"Tried to open unknown folder: '{folder_name}'")
+            return False
+
+        path = self.KNOWN_FOLDERS[folder_name]
+
+        try:
+            os.startfile(path)
+            logger.info(f"Opened folder: {folder_name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to open folder '{folder_name}': {e}")
             return False
