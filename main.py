@@ -1,5 +1,6 @@
 from tools.system_control import SystemControl
 from tools.file_manager import FileManager
+from tools.browser_control import BrowserControl
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -8,6 +9,7 @@ logger = get_logger(__name__)
 def main():
     system_control = SystemControl()
     file_manager = FileManager()
+    browser_control = BrowserControl()
 
     print("Assistant is running. Type 'exit' to quit.")
 
@@ -100,6 +102,20 @@ def main():
                         print(f"  - {f}")
                 else:
                     print(f"No files found matching '{keyword.strip()}' in '{folder.strip()}'.")
+
+        # --- Browser control commands ---
+        elif lower_input.startswith("search google "):
+            query = user_input[len("search google "):]
+            browser_control.search_google(query)
+
+        elif lower_input.startswith("go to "):
+            url = user_input[len("go to "):]
+            success = browser_control.open_website(url)
+            if not success:
+                print(f"Sorry, I couldn't open '{url}'.")
+
+        elif lower_input in browser_control.KNOWN_SITES:
+            browser_control.open_known_site(lower_input)
 
         else:
             print("Sorry, I don't understand that command yet.")
