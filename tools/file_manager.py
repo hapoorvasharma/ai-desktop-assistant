@@ -25,3 +25,20 @@ class FileManager:
         except Exception as e:
             logger.error(f"Failed to create folder '{path}': {e}")
             return False
+
+    def rename_file(self, old_path: str, new_path: str) -> bool:
+        """
+        Renames (or moves) a file from old_path to new_path.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            if not os.path.exists(old_path):
+                logger.warning(f"File not found: {old_path}")
+                return False
+
+            os.rename(old_path, new_path)
+            logger.info(f"Renamed '{old_path}' to '{new_path}'")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to rename '{old_path}': {e}")
+            return False
