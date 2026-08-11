@@ -28,6 +28,12 @@ def main():
             if not success:
                 print(f"Sorry, I couldn't close '{app_name}'.")
 
+        elif user_input.startswith("restart "):
+            app_name = user_input.replace("restart ", "", 1)
+            success = system_control.restart_app(app_name)
+            if not success:
+                print(f"Sorry, I couldn't restart '{app_name}'.")
+
         else:
             print("Sorry, I don't understand that command yet.")
 

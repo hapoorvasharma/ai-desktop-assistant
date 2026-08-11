@@ -1,4 +1,5 @@
 import subprocess
+import time
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -60,4 +61,22 @@ class SystemControl:
             return True
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to close '{app_name}': {e}")
+            return False
+
+    def restart_app(self, app_name: str) -> bool:
+        """
+        Restarts an application by closing it and opening it again.
+        Returns True if both steps succeeded, False otherwise.
+        """
+        app_name = app_name.lower().strip()
+
+        closed = self.close_app(app_name)
+        time.sleep(1)
+        opened = self.open_app(app_name)
+
+        if closed and opened:
+            logger.info(f"Restarted application: {app_name}")
+            return True
+        else:
+            logger.warning(f"Restart may have partially failed for: {app_name}")
             return False
