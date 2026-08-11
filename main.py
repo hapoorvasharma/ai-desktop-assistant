@@ -22,6 +22,16 @@ def main():
             if not success:
                 print(f"Sorry, I don't know how to open the '{folder_name}' folder yet.")
 
+        elif user_input.startswith("search "):
+            keyword = user_input.replace("search ", "", 1)
+            results = system_control.search_installed_apps(keyword)
+            if results:
+                print("Found these apps:")
+                for app in results:
+                    print(f"  - {app}")
+            else:
+                print(f"No installed apps found matching '{keyword}'.")
+
         elif user_input.startswith("open "):
             app_name = user_input.replace("open ", "", 1)
             success = system_control.open_app(app_name)

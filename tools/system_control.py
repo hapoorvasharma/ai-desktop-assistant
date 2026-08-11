@@ -9,7 +9,8 @@ logger = get_logger(__name__)
 class SystemControl:
     """
     Handles operating-system level actions: opening, closing,
-    and restarting applications, and opening folders.
+    and restarting applications, opening folders, and searching
+    installed applications.
     """
 
     KNOWN_APPS = {
@@ -108,3 +109,28 @@ class SystemControl:
         except Exception as e:
             logger.error(f"Failed to open folder '{folder_name}': {e}")
             return False
+
+    def search_installed_apps(self, keyword: str) -> list:
+        """
+        Searches installed applications (Start Menu shortcuts) for
+        names matching the given keyword. Returns a list of matches.
+        """
+        keyword = keyword.lower().strip()
+
+        start_menu_paths = [
+            os.path.join(os.environ["ProgramData"], "Microsoft", "Windows", "Start Menu", "Programs"),
+            os.path.join(os.environ["APPDATA"], "Microsoft", "Windows", "Start Menu", "Programs"),
+        ]
+
+        found_apps = []
+
+        for folder in start_menu_paths:
+            for root, dirs, files in os.walk(folder):
+                for file in files:
+                    if file.lower().endswith(".lnk"):
+                        app_name = file[:-4]  # remove ".lnk" from the end
+                        if keyword in app_name.lower():
+                            found_apps.append(app_name)
+
+        logger.info(f"Search for '{keyword}' found {len(found_apps)} result(s)")
+        return found_apps
