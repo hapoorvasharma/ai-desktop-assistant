@@ -42,3 +42,24 @@ class FileManager:
         except Exception as e:
             logger.error(f"Failed to rename '{old_path}': {e}")
             return False
+
+    def delete_file(self, path: str) -> bool:
+        """
+        Permanently deletes a file at the given path.
+        Returns True if deleted successfully, False otherwise.
+        """
+        try:
+            if not os.path.exists(path):
+                logger.warning(f"File not found: {path}")
+                return False
+
+            if os.path.isdir(path):
+                logger.warning(f"Refusing to delete '{path}': it is a folder, not a file")
+                return False
+
+            os.remove(path)
+            logger.info(f"Deleted file: {path}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to delete '{path}': {e}")
+            return False
