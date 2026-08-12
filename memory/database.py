@@ -117,3 +117,36 @@ def get_favorite_apps() -> list:
 
     conn.close()
     return [row[0] for row in results]
+def set_preference(key: str, value: str) -> None:
+    """
+    Saves or updates a preference (key-value pair).
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO preferences (key, value) VALUES (?, ?) "
+        "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        (key, value)
+    )
+
+    conn.commit()
+    conn.close()
+    logger.info(f"Set preference: {key} = {value}")
+
+
+def get_preference(key: str, default=None):
+    """
+    Retrieves a preference value by key. Returns default if not found.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT value FROM preferences WHERE key = ?", (key,))
+    result = cursor.fetchone()
+
+    conn.close()
+
+    if result:
+        return result[0]
+    return default
