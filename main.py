@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 
 def execute_action(action_data, system_control, file_manager, browser_control):
     """
-    Takes the structured action dictionary from Gemini and executes
+    Takes a single structured action dictionary and executes
     the matching function.
     """
     action = action_data.get("action", "unknown")
@@ -180,8 +180,9 @@ def main():
 
         save_command(user_input)
 
-        action_data = interpret_command(user_input)
-        execute_action(action_data, system_control, file_manager, browser_control)
+        actions = interpret_command(user_input)
+        for action_data in actions:
+            execute_action(action_data, system_control, file_manager, browser_control)
 
         if mode == "voice":
             print("(pausing for 2 seconds before listening again...)")
