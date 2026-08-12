@@ -7,3 +7,4 @@ logs/
 test_file_manager_manual.py
 test_voice_manual.py
 test_llm_manual.py
+test_memory_manual.py
