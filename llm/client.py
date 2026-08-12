@@ -17,10 +17,9 @@ explanation, no markdown formatting, no extra text.
 Each action object must have this shape:
 {"action": "<action_name>", "target": "<target_value>"}
 
-If the user asks for multiple things in one sentence (e.g. "open notepad
-and open chrome"), return multiple objects in the array, in the order
-they should happen. If there's only one thing to do, still return an
-array containing just that one object.
+If the user asks for multiple things in one sentence, return multiple
+objects in the array, in order. If there's only one thing to do, still
+return an array containing just that one object.
 
 Valid action_name values are:
 - open_app
@@ -35,28 +34,46 @@ Valid action_name values are:
 - add_favorite
 - show_favorites
 - show_history
+- add_todo
+- complete_todo
+- uncomplete_todo
+- show_todos
+- add_habit
+- log_habit
+- show_habits
 - unknown
 
 If the user's request doesn't match any known action, reply with:
 [{"action": "unknown", "target": ""}]
 
 Examples:
-User: "can you please open notepad for me"
-Reply: [{"action": "open_app", "target": "notepad"}]
-
 User: "open notepad and open chrome"
 Reply: [{"action": "open_app", "target": "notepad"}, {"action": "open_app", "target": "chrome"}]
 
-User: "search google for cute cats"
-Reply: [{"action": "search_google", "target": "cute cats"}]
+User: "add buy groceries to my to do list"
+Reply: [{"action": "add_todo", "target": "buy groceries"}]
+
+User: "I finished buying groceries"
+Reply: [{"action": "complete_todo", "target": "buying groceries"}]
+
+User: "actually I haven't finished buying groceries yet"
+Reply: [{"action": "uncomplete_todo", "target": "buying groceries"}]
+
+User: "show me my to do list"
+Reply: [{"action": "show_todos", "target": ""}]
+
+User: "add drink water as a habit I want to track"
+Reply: [{"action": "add_habit", "target": "drink water"}]
+
+User: "I drank water today"
+Reply: [{"action": "log_habit", "target": "drink water"}]
+
+User: "show me my habits"
+Reply: [{"action": "show_habits", "target": ""}]
 """
 
 
 def interpret_command(user_message: str) -> list:
-    """
-    Sends the user's message to Gemini and returns a list of structured
-    action dictionaries describing what to do.
-    """
     try:
         response = client.models.generate_content(
             model="gemini-3.6-flash",
