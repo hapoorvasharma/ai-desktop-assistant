@@ -3,109 +3,66 @@ from tools.system_control import SystemControl
 from tools.file_manager import FileManager
 from tools.browser_control import BrowserControl
 from tools.voice import Voice
+from llm.client import interpret_command
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
-def process_command(user_input, system_control, file_manager, browser_control):
+def execute_action(action_data, system_control, file_manager, browser_control):
     """
-    Takes a command (from typing or voice) and executes the matching action.
+    Takes the structured action dictionary from Gemini and executes
+    the matching function.
     """
-    lower_input = user_input.lower()
+    action = action_data.get("action", "unknown")
+    target = action_data.get("target", "")
 
-    if lower_input.startswith("open folder "):
-        folder_name = user_input[len("open folder "):]
-        success = system_control.open_folder(folder_name)
+    if action == "open_app":
+        success = system_control.open_app(target)
         if not success:
-            print(f"Sorry, I don't know how to open the '{folder_name}' folder yet.")
+            print(f"Sorry, I don't know how to open '{target}' yet.")
 
-    elif lower_input.startswith("search apps "):
-        keyword = user_input[len("search apps "):]
-        results = system_control.search_installed_apps(keyword)
+    elif action == "close_app":
+        success = system_control.close_app(target)
+        if not success:
+            print(f"Sorry, I couldn't close '{target}'.")
+
+    elif action == "restart_app":
+        success = system_control.restart_app(target)
+        if not success:
+            print(f"Sorry, I couldn't restart '{target}'.")
+
+    elif action == "open_folder":
+        success = system_control.open_folder(target)
+        if not success:
+            print(f"Sorry, I don't know how to open the '{target}' folder yet.")
+
+    elif action == "search_apps":
+        results = system_control.search_installed_apps(target)
         if results:
             print("Found these apps:")
             for app in results:
                 print(f"  - {app}")
         else:
-            print(f"No installed apps found matching '{keyword}'.")
+            print(f"No installed apps found matching '{target}'.")
 
-    elif lower_input.startswith("open "):
-        app_name = user_input[len("open "):]
-        success = system_control.open_app(app_name)
+    elif action == "create_folder":
+        success = file_manager.create_folder(target)
         if not success:
-            print(f"Sorry, I don't know how to open '{app_name}' yet.")
+            print(f"Sorry, I couldn't create the folder at '{target}'.")
 
-    elif lower_input.startswith("close "):
-        app_name = user_input[len("close "):]
-        success = system_control.close_app(app_name)
+    elif action == "delete_file":
+        success = file_manager.delete_file(target)
         if not success:
-            print(f"Sorry, I couldn't close '{app_name}'.")
+            print(f"Sorry, I couldn't delete '{target}'.")
 
-    elif lower_input.startswith("restart "):
-        app_name = user_input[len("restart "):]
-        success = system_control.restart_app(app_name)
+    elif action == "search_google":
+        browser_control.search_google(target)
+
+    elif action == "open_website":
+        success = browser_control.open_website(target)
         if not success:
-            print(f"Sorry, I couldn't restart '{app_name}'.")
-
-    elif lower_input.startswith("create folder "):
-        path = user_input[len("create folder "):]
-        success = file_manager.create_folder(path)
-        if not success:
-            print(f"Sorry, I couldn't create the folder at '{path}'.")
-
-    elif lower_input.startswith("delete file "):
-        path = user_input[len("delete file "):]
-        success = file_manager.delete_file(path)
-        if not success:
-            print(f"Sorry, I couldn't delete '{path}'.")
-
-    elif lower_input.startswith("rename file "):
-        rest = user_input[len("rename file "):]
-        if " to " not in rest:
-            print("Please use the format: rename file <old_path> to <new_path>")
-        else:
-            old_path, new_path = rest.split(" to ", 1)
-            success = file_manager.rename_file(old_path.strip(), new_path.strip())
-            if not success:
-                print(f"Sorry, I couldn't rename '{old_path.strip()}'.")
-
-    elif lower_input.startswith("move file "):
-        rest = user_input[len("move file "):]
-        if " to " not in rest:
-            print("Please use the format: move file <path> to <destination folder>")
-        else:
-            source_path, destination_folder = rest.split(" to ", 1)
-            success = file_manager.move_file(source_path.strip(), destination_folder.strip())
-            if not success:
-                print(f"Sorry, I couldn't move '{source_path.strip()}'.")
-
-    elif lower_input.startswith("search files "):
-        rest = user_input[len("search files "):]
-        if " in " not in rest:
-            print("Please use the format: search files <keyword> in <folder>")
-        else:
-            keyword, folder = rest.split(" in ", 1)
-            results = file_manager.search_files(keyword.strip(), folder.strip())
-            if results:
-                print("Found these files:")
-                for f in results:
-                    print(f"  - {f}")
-            else:
-                print(f"No files found matching '{keyword.strip()}' in '{folder.strip()}'.")
-
-    elif lower_input.startswith("search google "):
-        query = user_input[len("search google "):]
-        browser_control.search_google(query)
-
-    elif lower_input.startswith("go to "):
-        url = user_input[len("go to "):]
-        success = browser_control.open_website(url)
-        if not success:
-            print(f"Sorry, I couldn't open '{url}'.")
-
-    elif lower_input in browser_control.KNOWN_SITES:
-        browser_control.open_known_site(lower_input)
+            print(f"Sorry, I couldn't open '{target}'.")
 
     else:
         print("Sorry, I don't understand that command yet.")
@@ -187,7 +144,8 @@ def main():
             input()
             continue
 
-        process_command(user_input, system_control, file_manager, browser_control)
+        action_data = interpret_command(user_input)
+        execute_action(action_data, system_control, file_manager, browser_control)
 
         if mode == "voice":
             print("(pausing for 2 seconds before listening again...)")
