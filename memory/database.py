@@ -81,3 +81,39 @@ def get_recent_commands(limit: int = 10) -> list:
 
     conn.close()
     return results
+
+
+def add_favorite_app(app_name: str) -> bool:
+    """
+    Adds an app to the favorites list. Returns False if it's already there.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "INSERT INTO favorite_apps (app_name) VALUES (?)",
+            (app_name.lower().strip(),)
+        )
+        conn.commit()
+        logger.info(f"Added favorite app: {app_name}")
+        return True
+    except sqlite3.IntegrityError:
+        logger.warning(f"App already in favorites: {app_name}")
+        return False
+    finally:
+        conn.close()
+
+
+def get_favorite_apps() -> list:
+    """
+    Retrieves all favorite apps.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT app_name FROM favorite_apps")
+    results = cursor.fetchall()
+
+    conn.close()
+    return [row[0] for row in results]
