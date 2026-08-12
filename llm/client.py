@@ -27,12 +27,24 @@ Valid action_name values are:
 - delete_file
 - search_google
 - open_website
+- add_favorite
+- show_favorites
+- show_history
 - unknown
 
 If the user's request doesn't match any known action, reply with:
 {"action": "unknown", "target": ""}
 
 Examples:
+User: "add notepad to my favorites"
+Reply: {"action": "add_favorite", "target": "notepad"}
+
+User: "what are my favorite apps"
+Reply: {"action": "show_favorites", "target": ""}
+
+User: "show me my command history"
+Reply: {"action": "show_history", "target": ""}
+
 User: "can you please open notepad for me"
 Reply: {"action": "open_app", "target": "notepad"}
 

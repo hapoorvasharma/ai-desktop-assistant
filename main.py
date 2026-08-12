@@ -4,6 +4,13 @@ from tools.file_manager import FileManager
 from tools.browser_control import BrowserControl
 from tools.voice import Voice
 from llm.client import interpret_command
+from memory.database import (
+    initialize_database,
+    save_command,
+    get_recent_commands,
+    add_favorite_app,
+    get_favorite_apps,
+)
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -64,6 +71,31 @@ def execute_action(action_data, system_control, file_manager, browser_control):
         if not success:
             print(f"Sorry, I couldn't open '{target}'.")
 
+    elif action == "add_favorite":
+        added = add_favorite_app(target)
+        if added:
+            print(f"Added '{target}' to your favorites.")
+        else:
+            print(f"'{target}' is already in your favorites.")
+
+    elif action == "show_favorites":
+        favorites = get_favorite_apps()
+        if favorites:
+            print("Your favorite apps:")
+            for app in favorites:
+                print(f"  - {app}")
+        else:
+            print("You don't have any favorite apps saved yet.")
+
+    elif action == "show_history":
+        history = get_recent_commands()
+        if history:
+            print("Your recent commands:")
+            for command, timestamp in history:
+                print(f"  [{timestamp}] {command}")
+        else:
+            print("No command history yet.")
+
     else:
         print("Sorry, I don't understand that command yet.")
 
@@ -110,6 +142,8 @@ def listen_with_retries(voice, max_attempts=3):
 
 
 def main():
+    initialize_database()
+
     system_control = SystemControl()
     file_manager = FileManager()
     browser_control = BrowserControl()
@@ -143,6 +177,8 @@ def main():
             print("Paused. Press Enter when you're ready to continue listening...")
             input()
             continue
+
+        save_command(user_input)
 
         action_data = interpret_command(user_input)
         execute_action(action_data, system_control, file_manager, browser_control)
