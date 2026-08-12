@@ -1,3 +1,4 @@
+import time
 from tools.system_control import SystemControl
 from tools.file_manager import FileManager
 from tools.browser_control import BrowserControl
@@ -110,31 +111,87 @@ def process_command(user_input, system_control, file_manager, browser_control):
         print("Sorry, I don't understand that command yet.")
 
 
+def choose_mode(voice):
+    """
+    Asks the user whether they want to interact by text or voice.
+    Returns "text" or "voice".
+    """
+    print("Would you like to text or voice command me?")
+
+    for attempt in range(3):
+        spoken = voice.listen()
+        if spoken:
+            print(f"You said: {spoken}")
+            if "text" in spoken.lower():
+                return "text"
+            if "voice" in spoken.lower():
+                return "voice"
+
+        print("Please say 'I'll text you' or 'I'll voice command you'.")
+
+    print("Couldn't understand a choice — defaulting to text mode.")
+    return "text"
+
+
+def listen_with_retries(voice, max_attempts=3):
+    """
+    Tries listening multiple times before giving up.
+    Returns the recognized text, or an empty string if all attempts fail.
+    """
+    for attempt in range(max_attempts):
+        print("\nListening...")
+        spoken_text = voice.listen()
+
+        if spoken_text:
+            return spoken_text
+
+        remaining = max_attempts - attempt - 1
+        if remaining > 0:
+            print(f"Couldn't catch that — let's try again ({remaining} attempt(s) left)...")
+
+    return ""
+
+
 def main():
     system_control = SystemControl()
     file_manager = FileManager()
     browser_control = BrowserControl()
     voice = Voice()
 
-    print("Assistant is running. Type 'exit' to quit, or 'voice' to speak a command.")
+    mode = choose_mode(voice)
+    print(f"\nMode selected: {mode}")
+    print("Say or type 'exit' to quit, or 'thank you' to pause voice listening.")
 
     while True:
-        user_input = input("You: ").strip()
+        if mode == "voice":
+            spoken_text = listen_with_retries(voice)
+
+            if spoken_text:
+                user_input = spoken_text
+                print(f"You said: {user_input}")
+            else:
+                print("Still couldn't catch that. You can type instead:")
+                user_input = input("You: ").strip()
+        else:
+            user_input = input("You: ").strip()
 
         if user_input.lower() == "exit":
             print("Goodbye!")
             break
 
-        if user_input.lower() == "voice":
-            print("Listening...")
-            spoken_text = voice.listen()
-            if not spoken_text:
-                print("Sorry, I didn't catch that.")
-                continue
-            print(f"You said: {spoken_text}")
-            user_input = spoken_text
+        if not user_input:
+            continue
+
+        if mode == "voice" and user_input.lower() == "thank you":
+            print("Paused. Press Enter when you're ready to continue listening...")
+            input()
+            continue
 
         process_command(user_input, system_control, file_manager, browser_control)
+
+        if mode == "voice":
+            print("(pausing for 2 seconds before listening again...)")
+            time.sleep(2)
 
 
 if __name__ == "__main__":
